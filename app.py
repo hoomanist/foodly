@@ -3,7 +3,7 @@ from flask_pymongo import PyMongo
 from utils import Generate_token
 
 app = Flask(__name__)
-app.config["MONGO_URI"] = "mongodb://localhost:27017/XXX"
+app.config["MONGO_URI"] = "mongodb://localhost:27017/foodly"
 mongo = PyMongo(app)
 
 @app.route("/register", methods=['POST'])
@@ -46,12 +46,14 @@ def SubmitFood():
     QueryToken = list(mongo.db.tokens.find({}))
     print(QueryToken)
     if QueryToken[0]["username"] == username:
-        QueryFood = mongo.db.foods.find_one({
+        QueryFood = mongo.db.foods.insert_one({
             "restaurent": str(username),
             "name": str(request.args["name"]),
             "description": str(request.args["desc"]),
             "price": str(request.args["price"]) #TODO:add image
         })
+        print(QueryFood)
+
         return jsonify({"status":"done"})
 
 if __name__ == "__main__":
