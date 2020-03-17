@@ -46,12 +46,13 @@ def SubmitFood():
     QueryToken = list(mongo.db.tokens.find({}))
     print(QueryToken)
     if QueryToken[0]["username"] == username:
-        QueryUser = mongo.db.foods.find_one({
+        QueryFood = mongo.db.foods.find_one({
             "restaurent": str(username),
             "name": str(request.args["name"]),
             "description": str(request.args["desc"]),
             "price": str(request.args["price"]) #TODO:add image
         })
+        return jsonify({"status":"done"})
 
 if __name__ == "__main__":
     app.run("0.0.0.0", 5000, debug=True)
