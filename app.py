@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify
 from flask_pymongo import PyMongo
+from werkzeug.utils import secure_filename
 from utils import Generate_token
 
 app = Flask(__name__)
@@ -38,21 +39,26 @@ def login():
     else:
         return jsonify({"error":"something went wrong"}), 403
 
+@app.route("/upload/image", methods=["POST"])
+def UplaodImage():
+    File = request.files["image"]
+    filename = secure_filename(File.filename)
+    mongo.save_file(filename, File)
+    return jsonify({"filename":filename})
+
 @app.route("/submit/food", methods=["POST"])
 def SubmitFood():
     token = request.args["token"]
     username = request.args["username"]
-    print(f"{token} {username}")
     QueryToken = list(mongo.db.tokens.find({}))
-    print(QueryToken)
     if QueryToken[0]["username"] == username:
         QueryFood = mongo.db.foods.insert_one({
             "restaurent": str(username),
             "name": str(request.args["name"]),
             "description": str(request.args["desc"]),
-            "price": str(request.args["price"]) #TODO:add image
+            "price": str(request.args["price"]),
+            "image": str(request.args["image"])
         })
-        print(QueryFood)
 
         return jsonify({"status":"done"})
 
