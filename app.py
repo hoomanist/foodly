@@ -15,7 +15,7 @@ def register():
     phone = request.args["phone"]
     role = request.args["role"]
     if not role in ["customer", "restaurant"]:
-        return jsonify({"error":"bad role"}), 403
+        return jsonify({"error":"bad role"}), 400
     try:
         mongo.db.users.insert_one({
             "username": username,
@@ -37,7 +37,7 @@ def login():
     if len(tokens) == 1 and list(mongo.db.users.find({"username": username}))[0]["password"] == Hash(password):
         return jsonify({"token":tokens[0]["token"]}), 200
     else:
-        return jsonify({"error":"something went wrong"}), 403
+        return jsonify({"error":"something went wrong"}), 400
 
 @app.route("/upload/image", methods=["POST"])
 def UplaodImage():
@@ -95,8 +95,9 @@ def SubmitComment():
             }) #TODO:add voting for any comment
             return jsonify({"status":"done"})
         else:
-            return jsonify({"error", "food not found"}), 406
+            return jsonify({"error", "food not found"}), 404
     else:
-        return jsonify({"error": "your token is invalid"})
+        return jsonify({"error": "your token is invalid"}), 406
+    
 if __name__ == "__main__":
     app.run("0.0.0.0", 5000, debug=True)
