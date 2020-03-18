@@ -50,8 +50,8 @@ def UplaodImage():
 def SubmitFood():
     token = request.args["token"]
     username = request.args["username"]
-    QueryToken = list(mongo.db.tokens.find({"token": token}))
-    if QueryToken[0]["username"] == username
+    QueryToken = list(mongo.db.tokens.find({"token": int(token)}))
+    if QueryToken[0]["username"] == username:
         QueryFood = mongo.db.foods.insert_one({
             "restaurant": str(username),
             "name": str(request.args["name"]),
@@ -75,6 +75,28 @@ def GetImages():
     filename = request.args["filename"]
     return mongo.send_file(str(filename))
 
-
+@app.route("/submit/comment", methods=["POST"])
+def SubmitComment():
+    token = request.args["token"]
+    username = request.args["username"]
+    QueryToken = list(mongo.db.tokens.find({"token": int(token)}))
+    print(QueryToken)
+    if QueryToken[0]["username"] == username:
+        commentMsg = request.args["comment"]
+        restaurant = request.args["restaurant"]
+        name = request.args["name"]
+        QueryFood = mongo.db.foods.find({"name":name, "restaurant":restaurant})
+        if not len(list(QueryFood)) == 0:
+            mongo.db.comments.insert_one({
+                "foodName": name,
+                "restaurant": restaurant,
+                "username": username,
+                "comment": commentMsg
+            }) #TODO:add voting for any comment
+            return jsonify({"status":"done"})
+        else:
+            return jsonify({"error", "food not found"}), 406
+    else:
+        return jsonify({"error": "your token is invalid"})
 if __name__ == "__main__":
     app.run("0.0.0.0", 5000, debug=True)
