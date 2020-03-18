@@ -1,10 +1,11 @@
 from flask import Flask, request, jsonify
 from flask_pymongo import PyMongo
 from werkzeug.utils import secure_filename
-from utils import Generate_token
+from utils import Generate_token, JSONEncoder
 
 app = Flask(__name__)
 app.config["MONGO_URI"] = "mongodb://localhost:27017/foodly"
+app.json_encoder = JSONEncoder
 mongo = PyMongo(app)
 
 @app.route("/register", methods=['POST'])
@@ -13,7 +14,7 @@ def register():
     password = request.args["password"]
     phone = request.args["phone"]
     role = request.args["role"]
-    if not role in ["customer", "restaurent"]:
+    if not role in ["customer", "restaurant"]:
         return jsonify({"error":"bad role"}), 403
     try:
         mongo.db.users.insert_one({
@@ -53,14 +54,21 @@ def SubmitFood():
     QueryToken = list(mongo.db.tokens.find({}))
     if QueryToken[0]["username"] == username:
         QueryFood = mongo.db.foods.insert_one({
-            "restaurent": str(username),
+            "restaurant": str(username),
             "name": str(request.args["name"]),
             "description": str(request.args["desc"]),
             "price": str(request.args["price"]),
-            "image": str(request.args["image"])
+            "image": str(request.args["image_filename"])
         })
-
         return jsonify({"status":"done"})
 
+@app.route("/q/foodsbr")
+def GetFoodsByRestaurant():
+    restaurant = request.args["restaurant"]
+    QueryFoods = list(mongo.db.foods.find({"restaurant": restaurant}))
+    if len(QueryFoods) == 0:
+        return jsonify({"status":"there is no food"})
+    else:
+        return jsonify(QueryFoods)
 if __name__ == "__main__":
     app.run("0.0.0.0", 5000, debug=True)
