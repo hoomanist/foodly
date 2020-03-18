@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify
 from flask_pymongo import PyMongo
 from werkzeug.utils import secure_filename
-from utils import Generate_token, JSONEncoder
+from utils import Generate_token, JSONEncoder, Hash
 
 app = Flask(__name__)
 app.config["MONGO_URI"] = "mongodb://localhost:27017/foodly"
@@ -19,13 +19,12 @@ def register():
     try:
         mongo.db.users.insert_one({
             "username": username,
-            "password": password, #TODO:hash password for security stuff
+            "password": Hash(password), 
             "phone": phone,
             "role": role
         })
-    except Exception as e:
-        print(e)
-        return jsonify({"error":"unkown error occured"}), 500 #TODO:more error handeling
+    except writeError as e:
+        return jsonify({"error":"error while writing data to database"}), 500 
     token = Generate_token(mongo)
     mongo.db.tokens.insert_one({"token": token, "username": username})
     return jsonify({"token":token})
@@ -35,7 +34,7 @@ def login():
     username = str(request.args["username"])
     password = str(request.args["password"])
     tokens = list(mongo.db.tokens.find({"username": username}))
-    if len(tokens) == 1 and list(mongo.db.users.find({"username": username}))[0]["password"] == password:
+    if len(tokens) == 1 and list(mongo.db.users.find({"username": username}))[0]["password"] == Hash(password):
         return jsonify({"token":tokens[0]["token"]}), 200
     else:
         return jsonify({"error":"something went wrong"}), 403

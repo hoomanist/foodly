@@ -1,6 +1,11 @@
 import random
 import json
+import hashlib
 from bson import ObjectId
+
+def Hash(string):
+    result = hashlib.sha256(string.encode())
+    return result.hexdigest()
 
 def Generate_token(mongo):
     token = random.randint(0,10000)
@@ -14,3 +19,4 @@ class JSONEncoder(json.JSONEncoder):
         if isinstance(o, ObjectId):
             return str(o)
         return json.JSONEncoder.default(self, o)
+
