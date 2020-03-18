@@ -69,5 +69,12 @@ def GetFoodsByRestaurant():
         return jsonify({"status":"there is no food"})
     else:
         return jsonify(QueryFoods)
+
+@app.route("/q/image")
+def GetImages():
+    filename = request.args["filename"]
+    return mongo.send_file(str(filename))
+
+
 if __name__ == "__main__":
     app.run("0.0.0.0", 5000, debug=True)
