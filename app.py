@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify
 from flask_pymongo import PyMongo
 from werkzeug.utils import secure_filename
-from utils import Generate_token, JSONEncoder, Hash
+from utils import Generate_token, JSONEncoder, Hash, EmailValidation
 
 app = Flask(__name__)
 app.config["MONGO_URI"] = "mongodb://localhost:27017/foodly"
@@ -16,6 +16,8 @@ def register():
     role = request.args["role"]
     if not role in ["customer", "restaurant"]:
         return jsonify({"error":"bad role"}), 400
+    if not EmailValidation(email):
+    return jsonify({"error":"email is not valid"}), 400
     try:
         mongo.db.users.insert_one({
             "username": username,
