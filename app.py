@@ -12,19 +12,19 @@ mongo = PyMongo(app)
 def register():
     username = request.args["username"]
     password = request.args["password"]
-    phone = request.args["phone"]
+    email = request.args["email"]
     role = request.args["role"]
     if not role in ["customer", "restaurant"]:
         return jsonify({"error":"bad role"}), 400
     try:
         mongo.db.users.insert_one({
             "username": username,
-            "password": Hash(password), 
-            "phone": phone,
+            "password": Hash(password),
+            "email": email,
             "role": role
         })
     except writeError as e:
-        return jsonify({"error":"error while writing data to database"}), 500 
+        return jsonify({"error":"error while writing data to database"}), 500
     token = Generate_token(mongo)
     mongo.db.tokens.insert_one({"token": token, "username": username})
     return jsonify({"token":token})
@@ -98,6 +98,5 @@ def SubmitComment():
             return jsonify({"error", "food not found"}), 404
     else:
         return jsonify({"error": "your token is invalid"}), 406
-    
 if __name__ == "__main__":
     app.run("0.0.0.0", 5000, debug=True)
