@@ -21,6 +21,12 @@ class JSONEncoder(json.JSONEncoder):
             return str(o)
         return json.JSONEncoder.default(self, o)
 
+def usernameNotRepetitious(mongo, username):
+    if len(list(mongo.db.users.find({"username": username}))) == 0:
+        return True
+    else:
+        return False
+
 def EmailValidation(email):
     regex =  "^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$"
     return re.search(regex, email)
