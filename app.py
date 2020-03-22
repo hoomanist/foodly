@@ -74,6 +74,17 @@ def GetFoodsByRestaurant():
     else:
         return jsonify(QueryFoods)
 
+
+@app.route("/q/comments", methods=["GET"])
+def GetComments():
+    foodname = request.args["foodname"]
+    restaurant = request.args["restaurant"]
+    QueryComments = list(mongo.db.comments.find({
+        "foodName": foodname,
+        "restaurant":restaurant
+    }))
+    return jsonify(QueryComments), 200
+
 @app.route("/q/image")
 def GetImages():
     filename = request.args["filename"]
