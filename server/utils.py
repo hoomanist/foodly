@@ -3,13 +3,13 @@ import json
 import hashlib
 from bson import ObjectId
 import re
-
+from secrets import token_hex
 def Hash(string):
     result = hashlib.sha256(string.encode())
     return result.hexdigest()
 
 def Generate_token(mongo):
-    token = random.randint(0,10000)
+    token = token_hex(256)
     if len(list(mongo.db.tokens.find({"token": token}))) == 0:
         return token
     else:

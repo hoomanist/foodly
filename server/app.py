@@ -87,7 +87,7 @@ def GetComments():
 
 @app.route("/q/image")
 def GetImages():
-    filename = request.args["filename"]
+    filename= request.args["filename"]
     return mongo.send_file(str(filename))
 
 @app.route("/submit/comment", methods=["POST"])
