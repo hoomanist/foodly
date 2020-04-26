@@ -54,7 +54,7 @@ def UplaodImage():
 def SubmitFood():
     token = request.args["token"]
     username = request.args["username"]
-    QueryToken = list(mongo.db.tokens.find({"token": int(token)}))
+    QueryToken = list(mongo.db.tokens.find({"token":token}))
     if QueryToken[0]["username"] == username:
         QueryFood = mongo.db.foods.insert_one({
             "restaurant": str(username),
@@ -65,11 +65,17 @@ def SubmitFood():
         })
         return jsonify({"status":"done"})
 
+@app.route("/q/restaurants")
+def QueryRestaurant():
+    restset = list(mongo.db.users.find({"role":"restaurant"}))
+    print(list(restset))
+    return jsonify(list(restset))
+
 @app.route("/q/foodsbr")
 def GetFoodsByRestaurant():
     restaurant = request.args["restaurant"]
-    QueryFoods = list(mongo.db.foods.find({"restaurant": restaurant}))
-    if len(QueryFoods) == 0:
+    QueryFoods = mongo.db.foods.find({"restaurant": restaurant})
+    if len(list(QueryFoods)) == 0:
         return jsonify({"status":"there is no food"})
     else:
         return jsonify(QueryFoods)
@@ -94,7 +100,7 @@ def GetImages():
 def SubmitComment():
     token = request.args["token"]
     username = request.args["username"]
-    QueryToken = list(mongo.db.tokens.find({"token": int(token)}))
+    QueryToken = list(mongo.db.tokens.find({"token":token}))
     print(QueryToken)
     if QueryToken[0]["username"] == username:
         commentMsg = request.args["comment"]
@@ -107,11 +113,48 @@ def SubmitComment():
                 "restaurant": restaurant,
                 "username": username,
                 "comment": commentMsg
-            }) #TODO:add voting for any comment
+            })
             return jsonify({"status":"done"})
         else:
             return jsonify({"error", "food not found"}), 404
     else:
         return jsonify({"error": "your token is invalid"}), 406
+
+@app.route("/vote/food", methods=["POST"])
+def VoteFood():
+    restaurant = request.args["restaurant"]
+    foodname = request.args["food"]
+    token = request.args["token"]
+    username = request.args["username"]
+    QueryToken = list(mongo.db.tokens.find({"token":token}))
+    repitiousComment = mongo.db.votes.find({"restaurant": restaurant,"name": foodname, "username": username})
+    if not QueryToken[0]["username"] == username:
+        return jsonify({"error":"invalid token"}), 400
+    if len(list(repitiousComment)) > 0:
+        # print("damn it")
+        return jsonify({"error": "repitious voting"}), 403
+    QueryFood = list(mongo.db.foods.find({
+        "restaurant" : restaurant,
+        "name": foodname
+    }))
+
+    if len(QueryFood) == 0 or len(QueryFood) > 2:
+        return {"error":"no such food!!"}, 400
+
+    mongo.db.votes.insert({"restaurant": restaurant,"name": foodname,"username": username,"dir": request.args["dir"]
+    })
+    return jsonify({"done":"submitted"})
+
+
+@app.route("/q/votes")
+def QueryVotes():
+    food = request.args["food"]
+    restaurant = request.args["restaurant"]
+    posQuery = mongo.db.votes.find({"restaurant": restaurant,"name": food,"dir": "up"})
+    negQuery = mongo.db.votes.find({"restaurant": restaurant,"name": food,"dir": "down"})
+    totalVotes = len(list(posQuery)) - len(list(negQuery))
+    print(list(posQuery))
+    return jsonify({"total": str(totalVotes)})
+
 if __name__ == "__main__":
     app.run("0.0.0.0", 5000, debug=True)
