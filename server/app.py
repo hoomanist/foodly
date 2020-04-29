@@ -21,18 +21,15 @@ def register():
         return jsonify({"error":"bad role"}), 400
     if not EmailValidation(email):
         return jsonify({"error":"email is not valid"}), 400
-    if not usernameNotRepetitious(mongo, username ):
+    if not usernameNotRepetitious(mongo, username):
         return jsonify({"error": "username is repitious"}), 400
-    try:
-        mongo.db.users.insert_one({
-            "username": username,
-            "city":city,
-            "password": Hash(password),
-            "email": email,
-            "role": role
-        })
-    except writeError as e:
-        return jsonify({"error":"error while writing data to database"}), 500
+    mongo.db.users.insert_one({
+        "username": username,
+        "city":city,
+        "password": Hash(password),
+        "email": email,
+        "role": role
+    })
     token = Generate_token(mongo)
     mongo.db.tokens.insert_one({"token": token, "username": username})
     return jsonify({"token":token})
@@ -102,7 +99,7 @@ def GetComments():
 
 @app.route("/q/image")
 def GetImages():
-    filename= request.args["filename"]
+    filename = request.args["filename"]
     return mongo.send_file(str(filename))
 
 @app.route("/submit/comment", methods=["POST"])
@@ -110,7 +107,6 @@ def SubmitComment():
     token = request.args["token"]
     username = request.args["username"]
     QueryToken = list(mongo.db.tokens.find({"token":token}))
-    print(QueryToken)
     if QueryToken[0]["username"] == username:
         commentMsg = request.args["comment"]
         restaurant = request.args["restaurant"]
