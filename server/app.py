@@ -2,6 +2,8 @@ from flask import Flask, request, jsonify
 from flask_pymongo import PyMongo
 from werkzeug.utils import secure_filename
 from utils import Generate_token, JSONEncoder, Hash, EmailValidation, usernameNotRepetitious
+from datetime import  datetime
+
 
 app = Flask(__name__)
 app.config["MONGO_URI"] = "mongodb://localhost:27017/foodly"
@@ -14,6 +16,7 @@ def register():
     password = request.args["password"]
     email = request.args["email"]
     role = request.args["role"]
+    city = request.args["city"]
     if not role in ["customer", "restaurant"]:
         return jsonify({"error":"bad role"}), 400
     if not EmailValidation(email):
@@ -23,6 +26,7 @@ def register():
     try:
         mongo.db.users.insert_one({
             "username": username,
+            "city":city,
             "password": Hash(password),
             "email": email,
             "role": role
@@ -61,24 +65,29 @@ def SubmitFood():
             "name": str(request.args["name"]),
             "description": str(request.args["desc"]),
             "price": str(request.args["price"]),
-            "image": str(request.args["image_filename"])
+            "image": str(request.args["image_filename"]),
+            "date": datetime.now()
         })
         return jsonify({"status":"done"})
 
 @app.route("/q/restaurants")
 def QueryRestaurant():
     restset = list(mongo.db.users.find({"role":"restaurant"}))
-    print(list(restset))
+    for item in restset:
+        item.pop("password")
+        item.pop("email")
     return jsonify(list(restset))
 
-@app.route("/q/foodsbr")
-def GetFoodsByRestaurant():
+@app.route("/q/foodbyRTi")
+def GetfoodBySubmitdate():
     restaurant = request.args["restaurant"]
     QueryFoods = mongo.db.foods.find({"restaurant": restaurant})
     if len(list(QueryFoods)) == 0:
         return jsonify({"status":"there is no food"})
     else:
         return jsonify(QueryFoods)
+
+#TODO: have food by popularity 
 
 
 @app.route("/q/comments", methods=["GET"])
@@ -155,6 +164,18 @@ def QueryVotes():
     totalVotes = len(list(posQuery)) - len(list(negQuery))
     print(list(posQuery))
     return jsonify({"total": str(totalVotes)})
+
+@app.route("/q/restbycity")
+def QRestByCities():
+    city = request.args["city"]
+    city = str(city).lower
+    queryset = mongo.db.users.find({"role":"restaurant", "city": city})
+    for item in queryset:
+        item.pop("password")
+        item.pop("email")
+    return jsonify(queryset)
+
+
 
 if __name__ == "__main__":
     app.run("0.0.0.0", 5000, debug=True)
