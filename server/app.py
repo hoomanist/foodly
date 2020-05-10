@@ -2,8 +2,6 @@ from flask import Flask, request, jsonify
 from flask_pymongo import PyMongo
 from werkzeug.utils import secure_filename
 from utils import Generate_token, JSONEncoder, Hash, EmailValidation, usernameNotRepetitious
-from datetime import  datetime
-
 
 app = Flask(__name__)
 app.config["MONGO_URI"] = "mongodb://localhost:27017/foodly"
