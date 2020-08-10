@@ -1,0 +1,12 @@
+/register => {username, password, email, role, city}
+/login => {username, password}
+/upload/image => {image( multipart/form )}
+/submit/food => {name, reataurant , desc, price , image_filename, username, token}
+/q/restaurants => {}
+/q/foodbyRTi => {restaurant}
+/submit/comment => {token , username, comment, restaurant, name}
+/q/comments => {foodname, restaurant}
+/q/image => {filename}
+/vote/food => {restaurant, food, username, token, dir}
+/q/votes => {food, restaurant}
+/q/restbycity => {city}

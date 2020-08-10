@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify
 from flask_pymongo import PyMongo
 from werkzeug.utils import secure_filename
 from utils import Generate_token, JSONEncoder, Hash, EmailValidation, usernameNotRepetitious
-
+from datetime import datetime
 app = Flask(__name__)
 app.config["MONGO_URI"] = "mongodb://localhost:27017/foodly"
 app.json_encoder = JSONEncoder
@@ -74,13 +74,14 @@ def QueryRestaurant():
     return jsonify(list(restset))
 
 @app.route("/q/foodbyRTi")
-def GetfoodBySubmitdate():
+def GetfoodByName():
     restaurant = request.args["restaurant"]
     QueryFoods = mongo.db.foods.find({"restaurant": restaurant})
-    if len(list(QueryFoods)) == 0:
+    foods = list(QueryFoods)
+    if len(foods) == 0:
         return jsonify({"status":"there is no food"})
     else:
-        return jsonify(QueryFoods)
+        return jsonify(foods)
 
 #TODO: have food by popularity 
 
@@ -134,7 +135,6 @@ def VoteFood():
     if not QueryToken[0]["username"] == username:
         return jsonify({"error":"invalid token"}), 400
     if len(list(repitiousComment)) > 0:
-        # print("damn it")
         return jsonify({"error": "repitious voting"}), 403
     QueryFood = list(mongo.db.foods.find({
         "restaurant" : restaurant,
@@ -162,11 +162,12 @@ def QueryVotes():
 @app.route("/q/restbycity")
 def QRestByCities():
     city = request.args["city"]
-    city = str(city).lower
-    queryset = mongo.db.users.find({"role":"restaurant", "city": city})
+    city = str(city).lower()
+    queryset = list(mongo.db.users.find({"role":"restaurant", "city": city}))
     for item in queryset:
         item.pop("password")
         item.pop("email")
+    print(queryset)
     return jsonify(queryset)
 
 

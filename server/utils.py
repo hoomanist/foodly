@@ -4,6 +4,8 @@ import hashlib
 from bson import ObjectId
 import re
 from secrets import token_hex
+from datetime import datetime
+
 def Hash(string):
     result = hashlib.sha256(string.encode())
     return result.hexdigest()
@@ -13,11 +15,13 @@ def Generate_token(mongo):
     if len(list(mongo.db.tokens.find({"token": token}))) == 0:
         return token
     else:
-        Generate_token()
+        Generate_token(mongo)
 
 class JSONEncoder(json.JSONEncoder):
     def default(self, o):
         if isinstance(o, ObjectId):
+            return str(o)
+        if isinstance(o, datetime):
             return str(o)
         return json.JSONEncoder.default(self, o)
 
