@@ -59,7 +59,7 @@ def SubmitFood():
     username = request.args["username"]
     QueryToken = list(mongo.db.tokens.find({"token":token}))
     if QueryToken[0]["username"] == username:
-        QueryFood = mongo.db.foods.insert_one({
+        mongo.db.foods.insert_one({
             "restaurant": str(username),
             "name": str(request.args["name"]),
             "description": str(request.args["desc"]),
