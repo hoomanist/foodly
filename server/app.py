@@ -48,7 +48,7 @@ def login():
     if len(tokens) == 1 and list(mongo.db.users.find({"username": username}))[0]["password"] == Hash(password):
         return jsonify({"token":tokens[0]["token"]}), 200
     else:
-        return jsonify({"error":"something went wrong"}), 400
+        return jsonify({"error":"password is not valid"}), 400
 
 @app.route("/upload/image", methods=["POST"])
 def UplaodImage():
