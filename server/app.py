@@ -12,6 +12,10 @@ app.json_encoder = JSONEncoder
 mongo = PyMongo(app)
 CORS(app)
 
+@app.route("/ok", methods=['GET'])
+def test():
+    return jsonify({"status":"OK"})
+
 @app.route("/register", methods=['POST'])
 def register():
     username = request.form["username"]
